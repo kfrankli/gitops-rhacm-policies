@@ -1,0 +1,18 @@
+apiVersion: policy.open-cluster-management.io/v1
+kind: PolicyGenerator
+metadata:
+  name: configuration-policies
+policyDefaults:
+  namespace: policies
+  consolidateManifests: false
+policies:
+  - name: operator-configuration
+    manifests:
+      - path: manifests/operators
+        pruneObjectBehavior: DeleteIfCreated
+        remediationAction: enforce
+  - name: oauth-ldap
+    manifests:
+      - path: manifests/ldap
+        pruneObjectBehavior: DeleteIfCreated
+        remediationAction: inform

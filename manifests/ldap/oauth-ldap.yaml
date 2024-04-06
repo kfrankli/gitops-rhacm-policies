@@ -1,0 +1,375 @@
+apiVersion: project.openshift.io/v1
+kind: Project
+metadata:
+  name: ldap-sync
+spec:
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: ldap-group-syncer
+rules:
+- apiGroups:
+  - ""
+  - user.openshift.io
+  resources:
+  - groups
+  verbs:
+  - get
+  - list
+  - create
+  - update
+---
+apiVersion: authorization.openshift.io/v1
+groupNames: null
+kind: ClusterRoleBinding
+metadata:
+  name: ldap-group-syncer
+roleRef:
+  name: ldap-group-syncer
+subjects:
+- kind: ServiceAccount
+  name: ldap-group-syncer
+  namespace: ldap-sync
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: redhat-cluster-admins
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  name: SG-1R001
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ldap-group-accesslist
+  namespace: ldap-sync
+data:
+  blacklist.txt: ""
+  whitelist.txt: |
+    CN=SG-1R001,OU=IPS,OU=Infrastructure,OU=Org Units,DC=ds,DC=redhat,DC=com
+    CN=SG-1R003,OU=IPS,OU=Infrastructure,OU=Org Units,DC=ds,DC=redhat,DC=com
+    CN=SG-1R004,OU=IPS,OU=Infrastructure,OU=Org Units,DC=ds,DC=redhat,DC=com
+    CN=SG-1R005,OU=IPS,OU=Infrastructure,OU=Org Units,DC=ds,DC=redhat,DC=com
+    CN=SG-1R006,OU=IPS,OU=Infrastructure,OU=Org Units,DC=ds,DC=redhat,DC=com
+    CN=SG-1R007,OU=IPS,OU=Infrastructure,OU=Org Units,DC=ds,DC=redhat,DC=com
+    CN=SG-1R009,OU=IPS,OU=Infrastructure,OU=Org Units,DC=ds,DC=redhat,DC=com
+    CN=SG-1R010,OU=IPS,OU=Infrastructure,OU=Org Units,DC=ds,DC=redhat,DC=com
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ldap-group-syncer
+  namespace: ldap-sync
+data:
+  sync.yaml: "kind: LDAPSyncConfig\napiVersion: v1\nurl: ldaps://ds.redhat.io:636            \ninsecure:
+    false\nbindDN: CN=ocplinux,CN=Users,DC=ds,DC=redhat,DC=com       \nbindPassword:\n
+    \ file: \"/etc/secrets/bindPassword\"\nca: /etc/ldap-ca/ca.crt\naugmentedActiveDirectory:
+    \                                  \n  groupsQuery:\n    baseDN: \"OU=IPS,OU=Infrastructure,OU=Org
+    Units,DC=ds,DC=redhat,DC=com\"  \n    scope: sub\n    derefAliases: never\n    pageSize:
+    1000\n  groupUIDAttribute: dn\n  groupNameAttributes: [ sAMAccountName ]\n  groupMembershipAttributes:
+    [ memberOf ]\n  usersQuery:\n    filter: \"(objectClass=user)\"\n    baseDN: \"CN=Users,DC=ds,DC=redhat,DC=com\"
+    \  \n    scope: sub\n    derefAliases: never\n    pageSize: 1000\n  userNameAttributes:
+    [ userPrincipalName ]\n"
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: ldap-group-syncer
+  namespace: ldap-sync
+spec:
+  concurrencyPolicy: Forbid
+  failedJobsHistoryLimit: 1
+  jobTemplate:
+    metadata:
+      creationTimestamp: null
+    spec:
+      backoffLimit: 0
+      template:
+        metadata:
+          creationTimestamp: null
+        spec:
+          activeDeadlineSeconds: 500
+          containers:
+          - command:
+            - /bin/bash
+            - -c
+            - oc adm groups sync --whitelist=/etc/ldap-accesslist/whitelist.txt --blacklist=/etc/ldap-accesslist/blacklist.txt
+              --sync-config=/etc/config/sync.yaml --confirm
+            image: registry.redhat.io/openshift4/ose-cli:latest
+            imagePullPolicy: Always
+            name: ldap-group-sync
+            resources: {}
+            terminationMessagePath: /dev/termination-log
+            terminationMessagePolicy: File
+            volumeMounts:
+            - mountPath: /etc/config
+              name: ldap-sync-volume
+            - mountPath: /etc/secrets
+              name: ldap-bind-password
+            - mountPath: /etc/ldap-ca
+              name: ldap-ca
+            - mountPath: /etc/ldap-accesslist
+              name: ldap-accesslist
+          dnsPolicy: ClusterFirst
+          restartPolicy: Never
+          schedulerName: default-scheduler
+          securityContext: {}
+          serviceAccount: ldap-group-syncer
+          serviceAccountName: ldap-group-syncer
+          terminationGracePeriodSeconds: 30
+          volumes:
+          - configMap:
+              defaultMode: 420
+              name: ldap-group-syncer
+            name: ldap-sync-volume
+          - name: ldap-bind-password
+            secret:
+              defaultMode: 420
+              secretName: ldap-secret
+          - configMap:
+              defaultMode: 420
+              name: ca-config-map
+            name: ldap-ca
+          - configMap:
+              defaultMode: 420
+              name: ldap-group-accesslist
+            name: ldap-accesslist
+      ttlSecondsAfterFinished: 1800
+  schedule: '*/5 * * * *'
+  successfulJobsHistoryLimit: 3
+  suspend: false
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ca-config-map
+  namespace: ldap-sync
+data:
+  ca.crt: |
+    -----BEGIN CERTIFICATE-----
+    MIIOXjCCDUagAwIBAgIRAJvTi4ymgasVEJbyzx/HFhUwDQYJKoZIhvcNAQELBQAw
+    RjELMAkGA1UEBhMCVVMxIjAgBgNVBAoTGUdvb2dsZSBUcnVzdCBTZXJ2aWNlcyBM
+    TEMxEzARBgNVBAMTCkdUUyBDQSAxQzMwHhcNMjQwMzA0MDYzNTUwWhcNMjQwNTI3
+    MDYzNTQ5WjAXMRUwEwYDVQQDDAwqLmdvb2dsZS5jb20wWTATBgcqhkjOPQIBBggq
+    hkjOPQMBBwNCAAS9VfgCwrch13iVZHQaPOazb5MECTnYCSt9PxKUzgYAWOOwkcEW
+    cSUIviLg9MiWf27CxrEc4tPqFNBOW80Lgw+Ao4IMPzCCDDswDgYDVR0PAQH/BAQD
+    AgeAMBMGA1UdJQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwHQYDVR0OBBYE
+    FGlF31xjdtDWQ3P+QIigufF3sH4lMB8GA1UdIwQYMBaAFIp0f6+Fze6VzT2c0OJG
+    FPNxNR0nMGoGCCsGAQUFBwEBBF4wXDAnBggrBgEFBQcwAYYbaHR0cDovL29jc3Au
+    cGtpLmdvb2cvZ3RzMWMzMDEGCCsGAQUFBzAChiVodHRwOi8vcGtpLmdvb2cvcmVw
+    by9jZXJ0cy9ndHMxYzMuZGVyMIIJ7wYDVR0RBIIJ5jCCCeKCDCouZ29vZ2xlLmNv
+    bYIWKi5hcHBlbmdpbmUuZ29vZ2xlLmNvbYIJKi5iZG4uZGV2ghUqLm9yaWdpbi10
+    ZXN0LmJkbi5kZXaCEiouY2xvdWQuZ29vZ2xlLmNvbYIYKi5jcm93ZHNvdXJjZS5n
+    b29nbGUuY29tghgqLmRhdGFjb21wdXRlLmdvb2dsZS5jb22CCyouZ29vZ2xlLmNh
+    ggsqLmdvb2dsZS5jbIIOKi5nb29nbGUuY28uaW6CDiouZ29vZ2xlLmNvLmpwgg4q
+    Lmdvb2dsZS5jby51a4IPKi5nb29nbGUuY29tLmFygg8qLmdvb2dsZS5jb20uYXWC
+    DyouZ29vZ2xlLmNvbS5icoIPKi5nb29nbGUuY29tLmNvgg8qLmdvb2dsZS5jb20u
+    bXiCDyouZ29vZ2xlLmNvbS50coIPKi5nb29nbGUuY29tLnZuggsqLmdvb2dsZS5k
+    ZYILKi5nb29nbGUuZXOCCyouZ29vZ2xlLmZyggsqLmdvb2dsZS5odYILKi5nb29n
+    bGUuaXSCCyouZ29vZ2xlLm5sggsqLmdvb2dsZS5wbIILKi5nb29nbGUucHSCDyou
+    Z29vZ2xlYXBpcy5jboIRKi5nb29nbGV2aWRlby5jb22CDCouZ3N0YXRpYy5jboIQ
+    Ki5nc3RhdGljLWNuLmNvbYIPZ29vZ2xlY25hcHBzLmNughEqLmdvb2dsZWNuYXBw
+    cy5jboIRZ29vZ2xlYXBwcy1jbi5jb22CEyouZ29vZ2xlYXBwcy1jbi5jb22CDGdr
+    ZWNuYXBwcy5jboIOKi5na2VjbmFwcHMuY26CEmdvb2dsZWRvd25sb2Fkcy5jboIU
+    Ki5nb29nbGVkb3dubG9hZHMuY26CEHJlY2FwdGNoYS5uZXQuY26CEioucmVjYXB0
+    Y2hhLm5ldC5jboIQcmVjYXB0Y2hhLWNuLm5ldIISKi5yZWNhcHRjaGEtY24ubmV0
+    ggt3aWRldmluZS5jboINKi53aWRldmluZS5jboIRYW1wcHJvamVjdC5vcmcuY26C
+    EyouYW1wcHJvamVjdC5vcmcuY26CEWFtcHByb2plY3QubmV0LmNughMqLmFtcHBy
+    b2plY3QubmV0LmNughdnb29nbGUtYW5hbHl0aWNzLWNuLmNvbYIZKi5nb29nbGUt
+    YW5hbHl0aWNzLWNuLmNvbYIXZ29vZ2xlYWRzZXJ2aWNlcy1jbi5jb22CGSouZ29v
+    Z2xlYWRzZXJ2aWNlcy1jbi5jb22CEWdvb2dsZXZhZHMtY24uY29tghMqLmdvb2ds
+    ZXZhZHMtY24uY29tghFnb29nbGVhcGlzLWNuLmNvbYITKi5nb29nbGVhcGlzLWNu
+    LmNvbYIVZ29vZ2xlb3B0aW1pemUtY24uY29tghcqLmdvb2dsZW9wdGltaXplLWNu
+    LmNvbYISZG91YmxlY2xpY2stY24ubmV0ghQqLmRvdWJsZWNsaWNrLWNuLm5ldIIY
+    Ki5mbHMuZG91YmxlY2xpY2stY24ubmV0ghYqLmcuZG91YmxlY2xpY2stY24ubmV0
+    gg5kb3VibGVjbGljay5jboIQKi5kb3VibGVjbGljay5jboIUKi5mbHMuZG91Ymxl
+    Y2xpY2suY26CEiouZy5kb3VibGVjbGljay5jboIRZGFydHNlYXJjaC1jbi5uZXSC
+    EyouZGFydHNlYXJjaC1jbi5uZXSCHWdvb2dsZXRyYXZlbGFkc2VydmljZXMtY24u
+    Y29tgh8qLmdvb2dsZXRyYXZlbGFkc2VydmljZXMtY24uY29tghhnb29nbGV0YWdz
+    ZXJ2aWNlcy1jbi5jb22CGiouZ29vZ2xldGFnc2VydmljZXMtY24uY29tghdnb29n
+    bGV0YWdtYW5hZ2VyLWNuLmNvbYIZKi5nb29nbGV0YWdtYW5hZ2VyLWNuLmNvbYIY
+    Z29vZ2xlc3luZGljYXRpb24tY24uY29tghoqLmdvb2dsZXN5bmRpY2F0aW9uLWNu
+    LmNvbYIkKi5zYWZlZnJhbWUuZ29vZ2xlc3luZGljYXRpb24tY24uY29tghZhcHAt
+    bWVhc3VyZW1lbnQtY24uY29tghgqLmFwcC1tZWFzdXJlbWVudC1jbi5jb22CC2d2
+    dDEtY24uY29tgg0qLmd2dDEtY24uY29tggtndnQyLWNuLmNvbYINKi5ndnQyLWNu
+    LmNvbYILMm1kbi1jbi5uZXSCDSouMm1kbi1jbi5uZXSCFGdvb2dsZWZsaWdodHMt
+    Y24ubmV0ghYqLmdvb2dsZWZsaWdodHMtY24ubmV0ggxhZG1vYi1jbi5jb22CDiou
+    YWRtb2ItY24uY29tghRnb29nbGVzYW5kYm94LWNuLmNvbYIWKi5nb29nbGVzYW5k
+    Ym94LWNuLmNvbYIeKi5zYWZlbnVwLmdvb2dsZXNhbmRib3gtY24uY29tgg0qLmdz
+    dGF0aWMuY29tghQqLm1ldHJpYy5nc3RhdGljLmNvbYIKKi5ndnQxLmNvbYIRKi5n
+    Y3BjZG4uZ3Z0MS5jb22CCiouZ3Z0Mi5jb22CDiouZ2NwLmd2dDIuY29tghAqLnVy
+    bC5nb29nbGUuY29tghYqLnlvdXR1YmUtbm9jb29raWUuY29tggsqLnl0aW1nLmNv
+    bYILYW5kcm9pZC5jb22CDSouYW5kcm9pZC5jb22CEyouZmxhc2guYW5kcm9pZC5j
+    b22CBGcuY26CBiouZy5jboIEZy5jb4IGKi5nLmNvggZnb28uZ2yCCnd3dy5nb28u
+    Z2yCFGdvb2dsZS1hbmFseXRpY3MuY29tghYqLmdvb2dsZS1hbmFseXRpY3MuY29t
+    ggpnb29nbGUuY29tghJnb29nbGVjb21tZXJjZS5jb22CFCouZ29vZ2xlY29tbWVy
+    Y2UuY29tgghnZ3BodC5jboIKKi5nZ3BodC5jboIKdXJjaGluLmNvbYIMKi51cmNo
+    aW4uY29tggh5b3V0dS5iZYILeW91dHViZS5jb22CDSoueW91dHViZS5jb22CFHlv
+    dXR1YmVlZHVjYXRpb24uY29tghYqLnlvdXR1YmVlZHVjYXRpb24uY29tgg95b3V0
+    dWJla2lkcy5jb22CESoueW91dHViZWtpZHMuY29tggV5dC5iZYIHKi55dC5iZYIa
+    YW5kcm9pZC5jbGllbnRzLmdvb2dsZS5jb22CG2RldmVsb3Blci5hbmRyb2lkLmdv
+    b2dsZS5jboIcZGV2ZWxvcGVycy5hbmRyb2lkLmdvb2dsZS5jboIYc291cmNlLmFu
+    ZHJvaWQuZ29vZ2xlLmNughpkZXZlbG9wZXIuY2hyb21lLmdvb2dsZS5jboIYd2Vi
+    LmRldmVsb3BlcnMuZ29vZ2xlLmNuMCEGA1UdIAQaMBgwCAYGZ4EMAQIBMAwGCisG
+    AQQB1nkCBQMwPAYDVR0fBDUwMzAxoC+gLYYraHR0cDovL2NybHMucGtpLmdvb2cv
+    Z3RzMWMzL1FPdkowTjFzVDJBLmNybDCCAQQGCisGAQQB1nkCBAIEgfUEgfIA8AB2
+    AO7N0GTV2xrOxVy3nbTNE6Iyh0Z8vOzew1FIWUZxH7WbAAABjghj/KgAAAQDAEcw
+    RQIgK9Y3sYYMtu4VytbogpPvbKG8ZNGPhcXt1tfo3BisKO8CIQCTWZxnpJpVnrHB
+    mWFiIKqK4PVHibUvDoUzf5gYqbVBHwB2AEiw42vapkc0D+VqAvqdMOscUgHLVt0s
+    gdm7v6s52IRzAAABjghj/NAAAAQDAEcwRQIgDQoPVjOtRhPBP4DHQOE0HgIRjMKw
+    7lWUF4DYKjWlc3ACIQDpApwpLU9U6hjLeUGjEwFzNMkTd7niI9DI9FJ/lCRIUjAN
+    BgkqhkiG9w0BAQsFAAOCAQEAcndF8ktdBnou+Njp4zzS4KdZrPiF7VvOc831uu3H
+    KxcwxMdUON4+dlHUV8bZD6WGfto7D5VVVsA2Swvvb7N3OeRnW0Tcy3YWHfptTc+I
+    3EVlkG7wDhVWE1kNFKAEIauaZN3KIccnOn3+Bo6dnesjS1ep6kYnb/vQUjMeTRyL
+    pWAWXmfR119FCjUjiarQiEXBhcdnu+H33Nd7LT+8RTgtSps0+YAQcFGs8ANrI2g5
+    L1dcjTc24S4j4keRz+2xL2KYUMHJkP6ryHyBjimIOV2UNzuloAoTcDmp7evJ/eU1
+    rE7wArdVDt2iUEtRs+RBKtj5iVD8UnNI+cENUdIANeQHbw==
+    -----END CERTIFICATE-----
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ldap-secret
+  namespace: ldap-sync
+type: Opaque
+data:
+  # TODO CHANGE ME!!!
+  bindPassword: Y2hhbmdlaXQ=
+---
+apiVersion: config.openshift.io/v1
+kind: OAuth
+metadata:
+  name: cluster
+spec:
+  identityProviders:
+  - ldap:
+      attributes:
+        email:
+        - mail
+        id:
+        - dn
+        name:
+        - displayName
+        preferredUsername:
+        - userPrincipalName
+      bindDN: cn=ocplinux,CN=Users,DC=ds,DC=redhat,DC=com
+      bindPassword:
+        name: ldap-secret
+      ca:
+        name: ca-config-map
+      insecure: false
+      url: ldaps://ds.redhat.io/CN=Users,DC=ds,DC=redhat,DC=com?userPrincipalName?sub?(&(objectClass=user)(memberOf:1.2.840.113556.1.4.1941:=CN=SG-1R002,OU=IPS,OU=Infrastructure,OU=Org
+        Units,DC=ds,DC=redhat,DC=com))
+    mappingMethod: claim
+    name: ds.redhat.io
+    type: LDAP
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ldap-group-syncer
+  namespace: ldap-sync
+---
+apiVersion: v1
+data:
+  # TODO CHANGE ME!!!
+  bindPassword: Y2hhbmdlaXQ=
+kind: Secret
+metadata:
+  name: ldap-secret
+  namespace: openshift-config
+type: Opaque
+---
+kind: ConfigMap
+metadata:
+  name: ca-config-map
+  namespace: openshift-config
+apiVersion: v1
+data:
+  ca.crt: |
+    -----BEGIN CERTIFICATE-----
+    MIIOXjCCDUagAwIBAgIRAJvTi4ymgasVEJbyzx/HFhUwDQYJKoZIhvcNAQELBQAw
+    RjELMAkGA1UEBhMCVVMxIjAgBgNVBAoTGUdvb2dsZSBUcnVzdCBTZXJ2aWNlcyBM
+    TEMxEzARBgNVBAMTCkdUUyBDQSAxQzMwHhcNMjQwMzA0MDYzNTUwWhcNMjQwNTI3
+    MDYzNTQ5WjAXMRUwEwYDVQQDDAwqLmdvb2dsZS5jb20wWTATBgcqhkjOPQIBBggq
+    hkjOPQMBBwNCAAS9VfgCwrch13iVZHQaPOazb5MECTnYCSt9PxKUzgYAWOOwkcEW
+    cSUIviLg9MiWf27CxrEc4tPqFNBOW80Lgw+Ao4IMPzCCDDswDgYDVR0PAQH/BAQD
+    AgeAMBMGA1UdJQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwHQYDVR0OBBYE
+    FGlF31xjdtDWQ3P+QIigufF3sH4lMB8GA1UdIwQYMBaAFIp0f6+Fze6VzT2c0OJG
+    FPNxNR0nMGoGCCsGAQUFBwEBBF4wXDAnBggrBgEFBQcwAYYbaHR0cDovL29jc3Au
+    cGtpLmdvb2cvZ3RzMWMzMDEGCCsGAQUFBzAChiVodHRwOi8vcGtpLmdvb2cvcmVw
+    by9jZXJ0cy9ndHMxYzMuZGVyMIIJ7wYDVR0RBIIJ5jCCCeKCDCouZ29vZ2xlLmNv
+    bYIWKi5hcHBlbmdpbmUuZ29vZ2xlLmNvbYIJKi5iZG4uZGV2ghUqLm9yaWdpbi10
+    ZXN0LmJkbi5kZXaCEiouY2xvdWQuZ29vZ2xlLmNvbYIYKi5jcm93ZHNvdXJjZS5n
+    b29nbGUuY29tghgqLmRhdGFjb21wdXRlLmdvb2dsZS5jb22CCyouZ29vZ2xlLmNh
+    ggsqLmdvb2dsZS5jbIIOKi5nb29nbGUuY28uaW6CDiouZ29vZ2xlLmNvLmpwgg4q
+    Lmdvb2dsZS5jby51a4IPKi5nb29nbGUuY29tLmFygg8qLmdvb2dsZS5jb20uYXWC
+    DyouZ29vZ2xlLmNvbS5icoIPKi5nb29nbGUuY29tLmNvgg8qLmdvb2dsZS5jb20u
+    bXiCDyouZ29vZ2xlLmNvbS50coIPKi5nb29nbGUuY29tLnZuggsqLmdvb2dsZS5k
+    ZYILKi5nb29nbGUuZXOCCyouZ29vZ2xlLmZyggsqLmdvb2dsZS5odYILKi5nb29n
+    bGUuaXSCCyouZ29vZ2xlLm5sggsqLmdvb2dsZS5wbIILKi5nb29nbGUucHSCDyou
+    Z29vZ2xlYXBpcy5jboIRKi5nb29nbGV2aWRlby5jb22CDCouZ3N0YXRpYy5jboIQ
+    Ki5nc3RhdGljLWNuLmNvbYIPZ29vZ2xlY25hcHBzLmNughEqLmdvb2dsZWNuYXBw
+    cy5jboIRZ29vZ2xlYXBwcy1jbi5jb22CEyouZ29vZ2xlYXBwcy1jbi5jb22CDGdr
+    ZWNuYXBwcy5jboIOKi5na2VjbmFwcHMuY26CEmdvb2dsZWRvd25sb2Fkcy5jboIU
+    Ki5nb29nbGVkb3dubG9hZHMuY26CEHJlY2FwdGNoYS5uZXQuY26CEioucmVjYXB0
+    Y2hhLm5ldC5jboIQcmVjYXB0Y2hhLWNuLm5ldIISKi5yZWNhcHRjaGEtY24ubmV0
+    ggt3aWRldmluZS5jboINKi53aWRldmluZS5jboIRYW1wcHJvamVjdC5vcmcuY26C
+    EyouYW1wcHJvamVjdC5vcmcuY26CEWFtcHByb2plY3QubmV0LmNughMqLmFtcHBy
+    b2plY3QubmV0LmNughdnb29nbGUtYW5hbHl0aWNzLWNuLmNvbYIZKi5nb29nbGUt
+    YW5hbHl0aWNzLWNuLmNvbYIXZ29vZ2xlYWRzZXJ2aWNlcy1jbi5jb22CGSouZ29v
+    Z2xlYWRzZXJ2aWNlcy1jbi5jb22CEWdvb2dsZXZhZHMtY24uY29tghMqLmdvb2ds
+    ZXZhZHMtY24uY29tghFnb29nbGVhcGlzLWNuLmNvbYITKi5nb29nbGVhcGlzLWNu
+    LmNvbYIVZ29vZ2xlb3B0aW1pemUtY24uY29tghcqLmdvb2dsZW9wdGltaXplLWNu
+    LmNvbYISZG91YmxlY2xpY2stY24ubmV0ghQqLmRvdWJsZWNsaWNrLWNuLm5ldIIY
+    Ki5mbHMuZG91YmxlY2xpY2stY24ubmV0ghYqLmcuZG91YmxlY2xpY2stY24ubmV0
+    gg5kb3VibGVjbGljay5jboIQKi5kb3VibGVjbGljay5jboIUKi5mbHMuZG91Ymxl
+    Y2xpY2suY26CEiouZy5kb3VibGVjbGljay5jboIRZGFydHNlYXJjaC1jbi5uZXSC
+    EyouZGFydHNlYXJjaC1jbi5uZXSCHWdvb2dsZXRyYXZlbGFkc2VydmljZXMtY24u
+    Y29tgh8qLmdvb2dsZXRyYXZlbGFkc2VydmljZXMtY24uY29tghhnb29nbGV0YWdz
+    ZXJ2aWNlcy1jbi5jb22CGiouZ29vZ2xldGFnc2VydmljZXMtY24uY29tghdnb29n
+    bGV0YWdtYW5hZ2VyLWNuLmNvbYIZKi5nb29nbGV0YWdtYW5hZ2VyLWNuLmNvbYIY
+    Z29vZ2xlc3luZGljYXRpb24tY24uY29tghoqLmdvb2dsZXN5bmRpY2F0aW9uLWNu
+    LmNvbYIkKi5zYWZlZnJhbWUuZ29vZ2xlc3luZGljYXRpb24tY24uY29tghZhcHAt
+    bWVhc3VyZW1lbnQtY24uY29tghgqLmFwcC1tZWFzdXJlbWVudC1jbi5jb22CC2d2
+    dDEtY24uY29tgg0qLmd2dDEtY24uY29tggtndnQyLWNuLmNvbYINKi5ndnQyLWNu
+    LmNvbYILMm1kbi1jbi5uZXSCDSouMm1kbi1jbi5uZXSCFGdvb2dsZWZsaWdodHMt
+    Y24ubmV0ghYqLmdvb2dsZWZsaWdodHMtY24ubmV0ggxhZG1vYi1jbi5jb22CDiou
+    YWRtb2ItY24uY29tghRnb29nbGVzYW5kYm94LWNuLmNvbYIWKi5nb29nbGVzYW5k
+    Ym94LWNuLmNvbYIeKi5zYWZlbnVwLmdvb2dsZXNhbmRib3gtY24uY29tgg0qLmdz
+    dGF0aWMuY29tghQqLm1ldHJpYy5nc3RhdGljLmNvbYIKKi5ndnQxLmNvbYIRKi5n
+    Y3BjZG4uZ3Z0MS5jb22CCiouZ3Z0Mi5jb22CDiouZ2NwLmd2dDIuY29tghAqLnVy
+    bC5nb29nbGUuY29tghYqLnlvdXR1YmUtbm9jb29raWUuY29tggsqLnl0aW1nLmNv
+    bYILYW5kcm9pZC5jb22CDSouYW5kcm9pZC5jb22CEyouZmxhc2guYW5kcm9pZC5j
+    b22CBGcuY26CBiouZy5jboIEZy5jb4IGKi5nLmNvggZnb28uZ2yCCnd3dy5nb28u
+    Z2yCFGdvb2dsZS1hbmFseXRpY3MuY29tghYqLmdvb2dsZS1hbmFseXRpY3MuY29t
+    ggpnb29nbGUuY29tghJnb29nbGVjb21tZXJjZS5jb22CFCouZ29vZ2xlY29tbWVy
+    Y2UuY29tgghnZ3BodC5jboIKKi5nZ3BodC5jboIKdXJjaGluLmNvbYIMKi51cmNo
+    aW4uY29tggh5b3V0dS5iZYILeW91dHViZS5jb22CDSoueW91dHViZS5jb22CFHlv
+    dXR1YmVlZHVjYXRpb24uY29tghYqLnlvdXR1YmVlZHVjYXRpb24uY29tgg95b3V0
+    dWJla2lkcy5jb22CESoueW91dHViZWtpZHMuY29tggV5dC5iZYIHKi55dC5iZYIa
+    YW5kcm9pZC5jbGllbnRzLmdvb2dsZS5jb22CG2RldmVsb3Blci5hbmRyb2lkLmdv
+    b2dsZS5jboIcZGV2ZWxvcGVycy5hbmRyb2lkLmdvb2dsZS5jboIYc291cmNlLmFu
+    ZHJvaWQuZ29vZ2xlLmNughpkZXZlbG9wZXIuY2hyb21lLmdvb2dsZS5jboIYd2Vi
+    LmRldmVsb3BlcnMuZ29vZ2xlLmNuMCEGA1UdIAQaMBgwCAYGZ4EMAQIBMAwGCisG
+    AQQB1nkCBQMwPAYDVR0fBDUwMzAxoC+gLYYraHR0cDovL2NybHMucGtpLmdvb2cv
+    Z3RzMWMzL1FPdkowTjFzVDJBLmNybDCCAQQGCisGAQQB1nkCBAIEgfUEgfIA8AB2
+    AO7N0GTV2xrOxVy3nbTNE6Iyh0Z8vOzew1FIWUZxH7WbAAABjghj/KgAAAQDAEcw
+    RQIgK9Y3sYYMtu4VytbogpPvbKG8ZNGPhcXt1tfo3BisKO8CIQCTWZxnpJpVnrHB
+    mWFiIKqK4PVHibUvDoUzf5gYqbVBHwB2AEiw42vapkc0D+VqAvqdMOscUgHLVt0s
+    gdm7v6s52IRzAAABjghj/NAAAAQDAEcwRQIgDQoPVjOtRhPBP4DHQOE0HgIRjMKw
+    7lWUF4DYKjWlc3ACIQDpApwpLU9U6hjLeUGjEwFzNMkTd7niI9DI9FJ/lCRIUjAN
+    BgkqhkiG9w0BAQsFAAOCAQEAcndF8ktdBnou+Njp4zzS4KdZrPiF7VvOc831uu3H
+    KxcwxMdUON4+dlHUV8bZD6WGfto7D5VVVsA2Swvvb7N3OeRnW0Tcy3YWHfptTc+I
+    3EVlkG7wDhVWE1kNFKAEIauaZN3KIccnOn3+Bo6dnesjS1ep6kYnb/vQUjMeTRyL
+    pWAWXmfR119FCjUjiarQiEXBhcdnu+H33Nd7LT+8RTgtSps0+YAQcFGs8ANrI2g5
+    L1dcjTc24S4j4keRz+2xL2KYUMHJkP6ryHyBjimIOV2UNzuloAoTcDmp7evJ/eU1
+    rE7wArdVDt2iUEtRs+RBKtj5iVD8UnNI+cENUdIANeQHbw==
+    -----END CERTIFICATE-----
