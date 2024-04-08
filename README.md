@@ -62,6 +62,8 @@ Thank you to [Alberto Gonzalez de Dios](https://github.com/albertogd) for his ph
 
 This repository does in fact have kubernetes secrets committed to it since this is only a POC. As a reminder, the kubernetes secrets object is not itself secret. The contents of the object are by default a base64 encoding and are not encrypted. This is *not* something you should do as part of a production deployment strategy. Instead the secrets should be externalized via a different systems such as [SOPS](https://www.redhat.com/en/blog/a-guide-to-gitops-and-secret-management-with-argocd-operator-and-sops), [Hashicorp Vault](https://www.redhat.com/en/blog/openshift-gitops-with-argo-cd), [CyberArk](https://demo.openshift.com/en/latest/cyberark-for-openshift/), etc...
 
+[Red Hat Blog: A Holistic approach to encrypting secrets, both on and off your OpenShift clusters](https://www.redhat.com/en/blog/holistic-approach-to-encrypting-secrets-both-on-and-off-your-openshift-clusters)
+
 ## Why use the policy-generator-plugin?
 
 Writing the manifest for RHACM policies, placements, and placement bindings can quickly become rather complex. The [policy-generator-plugin](https://github.com/open-cluster-management-io/policy-generator-plugin) for kustomize can simplify a significant portion of this effort as it provides the following capabilities:
@@ -168,5 +170,6 @@ oc kustomize . --enable-alpha-plugins | oc create -f - --dry-run
 * [Product Documentation: RHACM: Configuring application channel and subscription for a secure Git connection](https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.10/html-single/applications/index#configuring-git-channel)
 * [Red Hat Blog: Generating Governance Policies Using Kustomize and GitOps](https://www.redhat.com/en/blog/generating-governance-policies-using-kustomize-and-gitops)
 * [Red Hat Blog: GitOps for organizations: provisioning and configuring OpenShift clusters automatically](https://www.redhat.com/en/blog/gitops-for-organizations-provisioning-and-configuring-openshift-clusters-automatically)
+* [Red Hat Blog: A Holistic approach to encrypting secrets, both on and off your OpenShift clusters](https://www.redhat.com/en/blog/holistic-approach-to-encrypting-secrets-both-on-and-off-your-openshift-clusters)
 * [Policy Generator](https://github.com/open-cluster-management-io/policy-generator-plugin/tree/main)
 * [Policy Generator Reference](https://github.com/open-cluster-management-io/policy-generator-plugin/blob/main/docs/policygenerator-reference.yaml)
