@@ -1,0 +1,9 @@
+apiVersion: v1
+data:
+  password: Q0hBTUdFTUU=  # CHANGEME
+  username: YWRtaW4=
+kind: Secret
+metadata:
+  name: bigip-login
+  namespace: kube-system
+type: Opaque
