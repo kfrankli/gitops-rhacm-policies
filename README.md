@@ -68,7 +68,7 @@ This repository does in fact have kubernetes secrets committed to it since this 
 
 1.  Run the following commands:
     ```console
-        $ oc delete channel.apps.open-cluster-management.io  gitops-policies-channel -n policies
+    $ oc delete channel.apps.open-cluster-management.io  gitops-policies-channel -n policies
     $ oc delete subscriptions.apps.open-cluster-management.io  gitops-policies-subscription -n policies
     $ oc delete ManagedClusterSetBinding global -n policies
     ```
