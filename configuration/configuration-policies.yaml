@@ -15,7 +15,7 @@ policies:
       - path: manifests/operators
         pruneObjectBehavior: DeleteIfCreated
         remediationAction: enforce
-  - name: infrastructure-nodes
+  - name: migrate-workloads-to-infra-nodes
     description: |
       This policy ensures that the following components are configured to deploy on infrastructure nodes:
       * Monitoring
