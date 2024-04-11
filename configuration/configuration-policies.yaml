@@ -28,7 +28,7 @@ policies:
         pruneObjectBehavior: None
         remediationAction: enforce
     placement:
-      # This somewhat hideous placement is there to ensure the infrastructure nodes
+      # This somewhat hideous placement is there to ensure this only applies to clusters that aren't the RHACM cluster. No point in mucking with that.
       labelSelector:
         matchExpressions:
           - key: local-cluster
