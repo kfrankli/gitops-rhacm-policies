@@ -7,11 +7,22 @@ policyDefaults:
   consolidateManifests: false
 policies:
   - name: operator-configuration
+    description: |
+      This policy ensures that the operators in manifests/operators are deployed to ALL clusters (global clusterset).
+      Currently it deploys the following operators:
+      * web-terminal redhat operator
     manifests:
       - path: manifests/operators
         pruneObjectBehavior: DeleteIfCreated
         remediationAction: enforce
   - name: infrastructure-nodes
+    description: |
+      This policy ensures that the following components are configured to deploy on infrastructure nodes:
+      * Monitoring
+      * Default Registry
+      * Default Router
+      For further information consult:
+        https://docs.openshift.com/container-platform/4.14/machine_management/creating-infrastructure-machinesets.html#moving-resources-to-infrastructure-machinesets
     manifests:
       - path: manifests/infrastructure-nodes
         pruneObjectBehavior: None
@@ -25,6 +36,8 @@ policies:
                 - "true"
                 - "True"
 #  - name: oauth-ldap
+#    description: |
+#      This ensures that ldap is configured for OAuth on all clusters (global clusterset)
 #    manifests:
 #      - path: manifests/ldap
 #        pruneObjectBehavior: DeleteIfCreated
