@@ -28,13 +28,14 @@ policies:
         pruneObjectBehavior: None
         remediationAction: enforce
     placement:
+      # This somewhat hideous placement is there to ensure the infrastructure nodes
       labelSelector:
         matchExpressions:
-            - key: local-cluster
-              operator: NotIn
-              values:
-                - "true"
-                - "True"
+          - key: local-cluster
+            operator: NotIn
+            values:
+              - "true"
+              - "True"
 #  - name: oauth-ldap
 #    description: |
 #      This ensures that ldap is configured for OAuth on all clusters (global clusterset)
