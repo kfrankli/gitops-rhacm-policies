@@ -5,8 +5,9 @@
 
 This repository consists of a simple example GitOps pattern for deploying policies in Red Hat Advanced Cluster Management for Kubernete (RHACM) using the [policy-generator-plugin](https://github.com/open-cluster-management-io/policy-generator-plugin) for kustomize. There are two policies that will be deployed:
 
-* `operator-configuration` - Deploy the Red Hat [web-terminal](https://github.com/redhat-developer/web-terminal-operator) Operator to all clusters
+* `infrastructure-nodes` - "Migrates" the Monitoring, Default Registry, and Default Router to infrastructure nodes by adding the node-selector and tolerations per [Red Hat Documentation: Moving Resources to Infrastructure Machinesets](https://docs.openshift.com/container-platform/4.14/machine_management/creating-infrastructure-machinesets.html#moving-resources-to-infrastructure-machinesets)
 * `oauth-ldap` - Deploys a ldap based oauth config to all clusters managed by RHACM to secure console access to OpenShift
+* `operator-configuration` - Deploy the Red Hat [web-terminal](https://github.com/redhat-developer/web-terminal-operator) Operator to all clusters
 
 Thank you to [Alberto Gonzalez de Dios](https://github.com/albertogd) for his phenomeal GitOps series.
 
@@ -15,6 +16,7 @@ Thank you to [Alberto Gonzalez de Dios](https://github.com/albertogd) for his ph
 * A Red Hat OpenShift cluster at 4.14+
 * Red Hat Advanced Cluster Management for Kubernetes installed at 2.10+
 * The OpenShift `oc` client utility installed locally 
+* You have Infrastructure node machinesets in place [Red Hat Documentation: Creating Infrastructure Machinesets](https://docs.openshift.com/container-platform/4.14/machine_management/creating-infrastructure-machinesets.html)
 
 ## Instructions for Deployment
 
