@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: bigIP01
+  name: bigip01
   namespace: kube-system
 spec:
   progressDeadlineSeconds: 600
