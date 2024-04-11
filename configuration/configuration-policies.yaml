@@ -41,5 +41,5 @@ policies:
 #      This ensures that ldap is configured for OAuth on all clusters (global clusterset)
 #    manifests:
 #      - path: manifests/ldap
-#        pruneObjectBehavior: DeleteIfCreated
+#        pruneObjectBehavior: None
 #        remediationAction: inform
