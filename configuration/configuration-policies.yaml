@@ -19,7 +19,6 @@ policies:
     description: |
       This policy ensures that the following components are configured to deploy on infrastructure nodes:
       * Monitoring
-      * Default Registry
       * Default Router
       For further information consult:
         https://docs.openshift.com/container-platform/4.14/machine_management/creating-infrastructure-machinesets.html#moving-resources-to-infrastructure-machinesets
