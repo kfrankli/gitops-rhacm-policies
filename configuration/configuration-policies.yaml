@@ -15,7 +15,7 @@ policies:
     manifests:
       - path: manifests/infrastructure-nodes
         pruneObjectBehavior: None
-        remediationAction: inform
+        remediationAction: enforce
     placement:
       labelSelector:
         matchExpressions:
