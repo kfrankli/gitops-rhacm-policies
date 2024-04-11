@@ -11,6 +11,11 @@ policies:
       - path: manifests/operators
         pruneObjectBehavior: DeleteIfCreated
         remediationAction: enforce
+  - name: infrastructure-nodes
+    manifests:
+      - path: manifests/infrastructure-nodes
+        pruneObjectBehavior: None
+        remediationAction: enforce
 #  - name: oauth-ldap
 #    manifests:
 #      - path: manifests/ldap
