@@ -6,7 +6,7 @@ policyDefaults:
   namespace: policies
   consolidateManifests: false
 policies:
-  - name: operator-configuration
+  - name: console-banner
     description: |
       This policy ensures that a console banner is present
     manifests:
