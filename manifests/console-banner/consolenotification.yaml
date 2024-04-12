@@ -3,7 +3,7 @@ kind: ConsoleNotification
 metadata:
   name: warning-banner
 spec:
-  text: 'You are currently operating in the {{ fromClusterClaim "name" }} cluster in the {{ fromClusterClaim "env" }} environment!'
+  text: 'Greetings and Salutations Fellow Humans! You are currently operating in the {{ fromClusterClaim "name" }} cluster in the {{ fromClusterClaim "env" }} environment!'
   location: BannerTop 
   color: '#fff'
   # Always provide a default. using "lookup" to in case the value doesn't return
