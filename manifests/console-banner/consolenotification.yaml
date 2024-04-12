@@ -11,4 +11,4 @@ spec:
   # https://www.redhat.com/en/blog/applying-policy-based-governance-at-scale-using-templates
   #  backgroundColor: '{{hub fromConfigMap "policies" (fromClusterClaim "env") "banner-color" hub}}'
   # Well I can't do that, because from a "hub" template you can't call outside the namespace, and it is trying to run this template from the hub rather than the managed cluster
-  backgroundColor: '{{hub fromConfigMap "policies" .ManagedClusterLabels.env-banner-config "banner-color" hub}}'
+  backgroundColor: '{{hub fromConfigMap "policies" .ManagedClusterLabels.env"-banner-config" "banner-color" hub}}'
