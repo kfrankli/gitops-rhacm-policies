@@ -1,0 +1,8 @@
+# https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.10/html-single/governance/index#template-processing
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: prod-banner-config
+  namespace: policies
+data:
+  banner-color: '#ff0000'
