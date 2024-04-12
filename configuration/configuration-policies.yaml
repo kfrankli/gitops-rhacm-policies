@@ -6,6 +6,13 @@ policyDefaults:
   namespace: policies
   consolidateManifests: false
 policies:
+  - name: operator-configuration
+    description: |
+      This policy ensures that a console banner is present
+    manifests:
+      - path: manifests/console-banner
+        pruneObjectBehavior: DeleteIfCreated
+        remediationAction: enforce
   - name: f5-cis-configurations
     description: |
       This policy ensures f5 CIS is configured for HA BIG-IP using OVN-k8s iCNI with NO Tunnels

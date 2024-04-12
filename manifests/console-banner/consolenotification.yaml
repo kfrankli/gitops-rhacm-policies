@@ -1,0 +1,9 @@
+apiVersion: console.openshift.io/v1
+kind: ConsoleNotification
+metadata:
+  name: warning-banner
+spec:
+  text: This is an example banner!
+  location: BannerTop 
+  color: '#fff'
+  backgroundColor: '#FF0000'
