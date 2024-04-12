@@ -9,7 +9,7 @@ This repository consists of a simple example GitOps pattern for deploying polici
 * `oauth-ldap` - Deploys a ldap based oauth config to all clusters managed by RHACM to secure console access to OpenShift
 * `operator-configuration` - Deploy the Red Hat [web-terminal](https://github.com/redhat-developer/web-terminal-operator) Operator to all clusters
 
-Thank you to [Alberto Gonzalez de Dios](https://github.com/albertogd) for his phenomeal GitOps series.
+Thank you to [Alberto Gonzalez de Dios](https://github.com/albertogd) for his phenomenal GitOps series.
 
 ## Assumptions
 
@@ -20,14 +20,16 @@ Thank you to [Alberto Gonzalez de Dios](https://github.com/albertogd) for his ph
 
 ## Instructions for Deployment
 
-1.  Create a `policies` namespace if one doesn't already exist, and switch to it. If you want to use a different namespace, this can be altered in `gitops-policies-channel-and-subscription.yaml` and `/configuration/configuration-policies.yaml`
+1.  Apply labels to your various managed clusters to reflect their status as `env=hub`, `env=dev`, or `env=prod`. This is used to correctly assigned the banner color and message in the various files in `hub-cluster-templates-configs/`. You can also create other environment names if these are not set.
+
+2.  Create a `policies` namespace if one doesn't already exist, and switch to it. If you want to use a different namespace, this can be altered in `gitops-policies-channel-and-subscription.yaml` and `/configuration/configuration-policies.yaml`
 
     ```console
     $ oc new-project policies
     $ oc project policies
     ```
 
-2.  Since RHACM 2.4, `policy.open-cluster-management.io/v1` resources are no longer deployed by an application subscription by default. A subscription administrator needs to deploy the application subscription to change this default behavior. Assuming the user you have logged in as doesn't already have this `cluster-role` run the following command:
+3.  Since RHACM 2.4, `policy.open-cluster-management.io/v1` resources are no longer deployed by an application subscription by default. A subscription administrator needs to deploy the application subscription to change this default behavior. Assuming the user you have logged in as doesn't already have this `cluster-role` run the following command:
 
     ```console
     $ oc adm policy add-cluster-role-to-user open-cluster-management:subscription-admin $(oc whoami)
@@ -50,13 +52,13 @@ Thank you to [Alberto Gonzalez de Dios](https://github.com/albertogd) for his ph
 
     For more information on this consult: [Product Documentation: RHACM: Granting subscription administrator privilege](https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.10/html-single/applications/index#granting-subscription-admin-privilege)
 
-3.  Finally run the following. This will create the `Channel` and `Subscription` objects to subscribe to this repositoryas well as the `ManagedClusterSetBinding` to bind the `policies` namespace and the `global` ClusterSet. 
+4.  Finally run the following. This will create the `Channel` and `Subscription` objects to subscribe to this repository as well as the `ManagedClusterSetBinding` to bind the `policies` namespace and the `global` ClusterSet. 
 
     ```console
     $ oc create -f ./gitops-policies-channel-and-subscription.yaml
     ```
 
-4.  Now you should be able to see the policies in your RHACM console, and with a little bit of time, the web-terminal operator should deploy since the `remediationAction: enforce` is set.
+5.  Now you should be able to see the policies in your RHACM console, and with a little bit of time, the web-terminal operator should deploy since the `remediationAction: enforce` is set.
 
 ![RHACM Console](rhacm-console.png)
 
