@@ -6,4 +6,7 @@ spec:
   text: 'This is an example banner for {{ fromClusterClaim "env" }} environment!'
   location: BannerTop 
   color: '#fff'
-  backgroundColor: '#FF0000'
+  # Always provide a default. using "lookup" to in case the value doesn't return
+  # https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.10/html/governance/governance#lookup-func
+  # https://www.redhat.com/en/blog/applying-policy-based-governance-at-scale-using-templates
+  backgroundColor: '{{ default "PROD" (hub fromConfigMap "policies" ((fromClusterClaim "env")-banner-config) "banner-color") }}'
