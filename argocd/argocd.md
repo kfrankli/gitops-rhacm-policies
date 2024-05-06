@@ -248,14 +248,16 @@ Now that OpenShift GitOps (Argo CD) has been installed and basic RBAC enabled, w
 
 ## Deploying our policies
 
-1.  We're first going to create a `policies` namespace to deploy our Policies in.
+1.  Apply labels to your various managed clusters to reflect their status as `env=hub`, `env=dev`, or `env=prod`. This is used to correctly assigned the banner color and message in the various files in `policies/hub-cluster-templates-configs/`. You can also create other environment names if these are not set.
+
+2.  We're first going to create a `policies` namespace to deploy our Policies in.
 
     ```console
     $ oc create ns policies
     $ oc project policies
     ```
 
-2.  The policies here are expected to run on all clusters, so we're going to bind the newly created `policies` namespace to the default `global` `ClusterSet`.
+3.  The policies here are expected to run on all clusters, so we're going to bind the newly created `policies` namespace to the default `global` `ClusterSet`.
  
     ```console
     $ cat ./argocd/global-managedclustersetbinding.yaml 
@@ -269,7 +271,7 @@ Now that OpenShift GitOps (Argo CD) has been installed and basic RBAC enabled, w
     $ oc create -f ./argocd/global-managedclustersetbinding.yaml 
     ```
 
-3.  Now we will create an ArgoCD application to listen to this repository and push out the Policies.
+4.  Now we will create an ArgoCD application to listen to this repository and push out the Policies.
 
     ```console
     $ oc create namespace policies
@@ -294,7 +296,7 @@ Now that OpenShift GitOps (Argo CD) has been installed and basic RBAC enabled, w
     $ oc create -f ./argocd/gitops-policies-application.yaml
     ```
 
-4.  Lastly we should be able to see our application deployed in Argo CD and RHACM. To get to the Argo CD console, retrieve the route:
+5.  Lastly we should be able to see our application deployed in Argo CD and RHACM. To get to the Argo CD console, retrieve the route:
 
     ```console
     $ oc get route openshift-gitops-server -n openshift-gitops
