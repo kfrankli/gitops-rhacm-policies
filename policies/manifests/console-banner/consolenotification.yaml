@@ -1,0 +1,12 @@
+apiVersion: console.openshift.io/v1
+kind: ConsoleNotification
+metadata:
+  name: warning-banner
+spec:
+  text: 'Greetings and Salutations Fellow Humans! You are currently operating in the {{ fromClusterClaim "name" }} cluster in the {{ fromClusterClaim "env" }} environment!'
+  location: BannerTop 
+  color: '#fff'
+  # Always provide a default. using "lookup" to in case the value doesn't return
+  # https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.10/html/governance/governance#lookup-func
+  # https://www.redhat.com/en/blog/applying-policy-based-governance-at-scale-using-templates
+  backgroundColor: '{{hub fromConfigMap "policies" ( printf "%s-banner-config" .ManagedClusterLabels.env ) "banner-color" hub}}'

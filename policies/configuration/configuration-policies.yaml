@@ -6,6 +6,15 @@ policyDefaults:
   namespace: policies
   consolidateManifests: false
 policies:
+  - name: operator-configuration
+    description: |
+      This policy ensures that the operators in manifests/operators are deployed to ALL clusters (global clusterset).
+      Currently it deploys the following operators:
+      * web-terminal redhat operator
+    manifests:
+      - path: manifests/operators
+        pruneObjectBehavior: DeleteIfCreated
+        remediationAction: enforce
   - name: console-banner
     description: |
       This policy ensures that a console banner is present
@@ -18,28 +27,12 @@ policies:
       This policy ensures f5 CIS is configured for HA BIG-IP using OVN-k8s iCNI with NO Tunnels
       * https://clouddocs.f5.com/containers/latest/userguide/openshift/openshift-4-12-cluster.html
       * https://github.com/mdditt2000/k8s-bigip-ctlr/tree/main/user_guides/ovn-kubernetes-ha#step-4-configure-egress-from-openshift-cluster-to-big-ip
+    placement:
+      placementPath: placements/non-hub-placement.yaml
     manifests:
       - path: manifests/f5-cis
         pruneObjectBehavior: None
         remediationAction: inform
-    placement:
-      # This somewhat hideous placement is there to ensure this only applies to clusters that aren't the RHACM cluster. No point in mucking with that.
-      labelSelector:
-        matchExpressions:
-          - key: local-cluster
-            operator: NotIn
-            values:
-              - "true"
-              - "True"
-  - name: operator-configuration
-    description: |
-      This policy ensures that the operators in manifests/operators are deployed to ALL clusters (global clusterset).
-      Currently it deploys the following operators:
-      * web-terminal redhat operator
-    manifests:
-      - path: manifests/operators
-        pruneObjectBehavior: DeleteIfCreated
-        remediationAction: enforce
   - name: migrate-workloads-to-infra-nodes
     description: |
       This policy ensures that the following components are configured to deploy on infrastructure nodes:
@@ -52,18 +45,11 @@ policies:
         pruneObjectBehavior: None
         remediationAction: enforce
     placement:
-      # This somewhat hideous placement is there to ensure this only applies to clusters that aren't the RHACM cluster. No point in mucking with that.
-      labelSelector:
-        matchExpressions:
-          - key: local-cluster
-            operator: NotIn
-            values:
-              - "true"
-              - "True"
-#  - name: oauth-ldap
-#    description: |
-#      This ensures that ldap is configured for OAuth on all clusters (global clusterset)
-#    manifests:
-#      - path: manifests/ldap
-#        pruneObjectBehavior: None
-#        remediationAction: inform
+      placementPath: placements/non-hub-placement.yaml
+  - name: oauth-ldap
+    description: |
+      This ensures that ldap is configured for OAuth on all clusters (global clusterset)
+    manifests:
+      - path: manifests/ldap
+        pruneObjectBehavior: None
+        remediationAction: inform

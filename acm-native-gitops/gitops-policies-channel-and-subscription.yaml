@@ -13,7 +13,7 @@ metadata:
   name: gitops-policies-subscription
   namespace: policies
   annotations:
-    apps.open-cluster-management.io/git-path: /
+    apps.open-cluster-management.io/git-path: /policies
     apps.open-cluster-management.io/git-branch: main
 spec:
   channel: policies/gitops-policies-channel
