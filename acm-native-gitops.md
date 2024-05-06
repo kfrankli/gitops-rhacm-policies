@@ -45,7 +45,7 @@
 
 5.  Now you should be able to see the policies in your RHACM console, and with a little bit of time, the web-terminal operator should deploy since the `remediationAction: enforce` is set.
 
-![RHACM Console](../rhacm-console.png)
+![RHACM Console](rhacm-console.png)
 
 ## Instructions for Removal
 
