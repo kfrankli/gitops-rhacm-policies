@@ -11,13 +11,25 @@
 
     ```console
     $ oc new-project policies
+    Now using project "policies" on server "https://api.cluster-ssz48.ssz48.sandbox2884.opentlc.com:6443".
+
+    You can add applications to this project with the 'new-app' command. For example, try:
+
+        oc new-app rails-postgresql-example
+
+    to build a new example application in Ruby. Or use kubectl to deploy a simple Kubernetes application:
+
+        kubectl create deployment hello-node --image=registry.k8s.io/e2e-test-images/agnhost:2.43 -- /agnhost serve-hostname
+
     $ oc project policies
+    Already on project "policies" on server "https://api.cluster-ssz48.ssz48.sandbox2884.opentlc.com:6443".
     ```
 
 3.  Since RHACM 2.4, `policy.open-cluster-management.io/v1` resources are no longer deployed by an application subscription by default. A subscription administrator needs to deploy the application subscription to change this default behavior. Assuming the user you have logged in as doesn't already have this `cluster-role` run the following command:
 
     ```console
     $ oc adm policy add-cluster-role-to-user open-cluster-management:subscription-admin $(oc whoami)
+    clusterrole.rbac.authorization.k8s.io/open-cluster-management:subscription-admin added: "admin"
     ```
 
     If you don't run the prior command you will see an error like the below appear:
@@ -41,6 +53,10 @@
 
     ```console
     $ oc create -f ./acm-native-gitops/gitops-policies-channel-and-subscription.yaml
+    channel.apps.open-cluster-management.io/gitops-policies-channel created
+    subscription.apps.open-cluster-management.io/gitops-policies-subscription created
+    managedclustersetbinding.cluster.open-cluster-management.io/global created
+
     ```
 
 5.  Now you should be able to see the policies in your RHACM console, and with a little bit of time, the web-terminal operator should deploy since the `remediationAction: enforce` is set.

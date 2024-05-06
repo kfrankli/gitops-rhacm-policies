@@ -14,7 +14,9 @@ This section will outline how to use the CLI to install the OpenShift GitOps Ope
 
     ```console
     $ oc create ns openshift-gitops-operator
+    namespace/openshift-gitops-operator created
     $ oc project openshift-gitops-operator
+    Now using project "openshift-gitops-operator" on server "https://api.cluster-ssz48.ssz48.sandbox2884.opentlc.com:6443".
     ```
 
 2.  Apply the `OperatorGroup` object.
@@ -51,7 +53,7 @@ This section will outline how to use the CLI to install the OpenShift GitOps Ope
     subscription.operators.coreos.com/openshift-gitops-operator created
     ```
 
-4.  After the installation is complete, verify that all the pods in the `openshift-gitops` namespace are running.
+4.  After the installation is complete, verify that all the pods in the `openshift-gitops` namespace are running. This can take a few minutes depending on your network to even return anything.
 
     ```console
     $ oc get pods -n openshift-gitops
