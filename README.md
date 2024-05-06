@@ -20,6 +20,14 @@ Thank you to [Alberto Gonzalez de Dios](https://github.com/albertogd) for his ph
 * The OpenShift `oc` client utility installed locally 
 * You have Infrastructure node machinesets in place [Red Hat Documentation: Creating Infrastructure Machinesets](https://docs.openshift.com/container-platform/4.14/machine_management/creating-infrastructure-machinesets.html)
 
+## Using the ArgoCD based OpenShift GitOps Operator (Recommended)
+
+[OpenShift GitOps (ArgoCD) Instructions](argocd.md)
+
+## Using the RHACM Native Application Model
+
+[RHACM Native Application Model Instructions](acm-native-gitops.md)
+
 ## Why use the policy-generator-plugin?
 
 Writing the manifest for RHACM policies, placements, and placement bindings can quickly become rather complex. The [policy-generator-plugin](https://github.com/open-cluster-management-io/policy-generator-plugin) for kustomize can simplify a significant portion of this effort as it provides the following capabilities:
@@ -121,13 +129,6 @@ This repository does in fact have kubernetes secrets committed to it since this 
 
 [Red Hat Blog: A Holistic approach to encrypting secrets, both on and off your OpenShift clusters](https://www.redhat.com/en/blog/holistic-approach-to-encrypting-secrets-both-on-and-off-your-openshift-clusters)
 
-## Using the ArgoCD based OpenShift GitOps Operator (Recommended)
-
-[OpenShift GitOps (ArgoCD) Instructions](argocd/README.md)
-
-## Using the RHACM Native Application Model
-
-[RHACM Native Application Model Instructions](acm-native-gitops/README.md)
 
 ## References
 
