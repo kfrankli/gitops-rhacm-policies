@@ -189,3 +189,4 @@ oc kustomize . --enable-alpha-plugins | oc create -f - --dry-run
 * [Red Hat Blog: A Holistic approach to encrypting secrets, both on and off your OpenShift clusters](https://www.redhat.com/en/blog/holistic-approach-to-encrypting-secrets-both-on-and-off-your-openshift-clusters)
 * [Policy Generator](https://github.com/open-cluster-management-io/policy-generator-plugin/tree/main)
 * [Policy Generator Reference](https://github.com/open-cluster-management-io/policy-generator-plugin/blob/main/docs/policygenerator-reference.yaml)
+https://github.com/mdditt2000/k8s-bigip-ctlr/tree/main/user_guides/ovn-kubernetes-ha#step-4-configure-egress-from-openshift-cluster-to-big-ip
