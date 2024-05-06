@@ -23,7 +23,6 @@ policies:
         pruneObjectBehavior: None
         remediationAction: inform
     placement:
-      # This somewhat hideous placement is there to ensure this only applies to clusters that aren't the RHACM cluster. No point in mucking with that.
       labelSelector:
         matchExpressions:
           - key: local-cluster
