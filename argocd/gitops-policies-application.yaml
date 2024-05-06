@@ -11,7 +11,7 @@ spec:
   source:
     repoURL: https://github.com/kfrankli/gitops-rhacm-policies.git
     targetRevision: main
-    path: .
+    path: /policies
   syncPolicy:
     automated:
       prune: true

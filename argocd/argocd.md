@@ -137,6 +137,20 @@ roleRef:
 $ oc apply -f openshift-gitops-policy-admin-clusterolebinding.yaml
 ```
 
+# Binding the global clusterset
+
+```
+$ cat global-managedclustersetbinding.yaml 
+apiVersion: cluster.open-cluster-management.io/v1beta2
+kind: ManagedClusterSetBinding 
+metadata:
+  name: global
+  namespace: policies
+spec:
+  clusterSet: global
+$ oc create -f global-managedclustersetbinding.yaml 
+```
+
 # Create rbac stuff
 
 ```
