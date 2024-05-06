@@ -1,10 +1,8 @@
 apiVersion: cluster.open-cluster-management.io/v1beta1
 kind: Placement
 metadata:
-  labels:
-    custom: myApp
-  name: placement-red-hat-cloud
-  namespace: my-policies
+  name: non-hub-placement
+  namespace: policies
 spec:
   predicates:
   - requiredClusterSelector:
