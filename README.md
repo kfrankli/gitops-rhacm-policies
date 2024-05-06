@@ -5,9 +5,11 @@
 
 This repository consists of a simple example GitOps pattern for deploying policies in Red Hat Advanced Cluster Management for Kubernete (RHACM) using the [policy-generator-plugin](https://github.com/open-cluster-management-io/policy-generator-plugin) for kustomize via the preferred as of RHACM 2.9 [ArgoCD based OpenShift GitOps Operator](https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.10/html/gitops/index) or via the [RHACM native Application Model](https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.10/html/applications/managing-applications). There are two policies that will be deployed:
 
+* `operator-configuration` - Deploy the Red Hat [web-terminal](https://github.com/redhat-developer/web-terminal-operator) Operator to all clusters. This is the "simplest" manifest to study and learn.
+* `console-banner` - Deploys a simple console banner unique to each environment. In doing so demonstrates how to handle basic environment specific variables in this GitOps model.
 * `migrate-workloads-to-infra-nodes` - "Migrates" the Monitoring and Default Router to infrastructure nodes by adding the node-selector and tolerations per [Red Hat Documentation: Moving Resources to Infrastructure Machinesets](https://docs.openshift.com/container-platform/4.14/machine_management/creating-infrastructure-machinesets.html#moving-resources-to-infrastructure-machinesets)
 * `oauth-ldap` - Deploys a ldap based oauth config to all clusters managed by RHACM to secure console access to OpenShift
-* `operator-configuration` - Deploy the Red Hat [web-terminal](https://github.com/redhat-developer/web-terminal-operator) Operator to all clusters
+* `f5-cis-configurations` - Deploys [OpenShift OVN-Kubernetes using F5 BIG-IP HA with NO Tunnels](https://github.com/mdditt2000/k8s-bigip-ctlr/tree/main/user_guides/ovn-kubernetes-ha#step-4-configure-egress-from-openshift-cluster-to-big-ip)
 
 Thank you to [Alberto Gonzalez de Dios](https://github.com/albertogd) for his phenomenal GitOps series.
 
