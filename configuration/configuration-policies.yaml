@@ -25,7 +25,6 @@ policies:
             operator: NotIn
             values:
              - "true"
-             - "True"
     manifests:
       - path: manifests/f5-cis
         pruneObjectBehavior: None
