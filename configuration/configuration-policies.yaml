@@ -18,15 +18,6 @@ policies:
       This policy ensures f5 CIS is configured for HA BIG-IP using OVN-k8s iCNI with NO Tunnels
       * https://clouddocs.f5.com/containers/latest/userguide/openshift/openshift-4-12-cluster.html
       * https://github.com/mdditt2000/k8s-bigip-ctlr/tree/main/user_guides/ovn-kubernetes-ha#step-4-configure-egress-from-openshift-cluster-to-big-ip
-    placement:
-      # This somewhat hideous placement is there to ensure this only applies to clusters that aren't the RHACM cluster. No point in mucking with that.
-      labelSelector:
-        matchExpressions:
-          - key: local-cluster
-            operator: NotIn
-            values:
-              - "true"
-              - "True"
     manifests:
       - path: manifests/f5-cis
         pruneObjectBehavior: None
