@@ -119,7 +119,7 @@ This repository does in fact have kubernetes secrets committed to it since this 
 
 [Red Hat Blog: A Holistic approach to encrypting secrets, both on and off your OpenShift clusters](https://www.redhat.com/en/blog/holistic-approach-to-encrypting-secrets-both-on-and-off-your-openshift-clusters)
 
-## Using the ArgoCD based OpenShift GitOps Operator
+## Using the ArgoCD based OpenShift GitOps Operator (Recommended)
 
 [OpenShift GitOps (ArgoCD) Instructions](argocd/argocd.md)
 
@@ -137,4 +137,4 @@ This repository does in fact have kubernetes secrets committed to it since this 
 * [Red Hat Blog: A Holistic approach to encrypting secrets, both on and off your OpenShift clusters](https://www.redhat.com/en/blog/holistic-approach-to-encrypting-secrets-both-on-and-off-your-openshift-clusters)
 * [Policy Generator](https://github.com/open-cluster-management-io/policy-generator-plugin/tree/main)
 * [Policy Generator Reference](https://github.com/open-cluster-management-io/policy-generator-plugin/blob/main/docs/policygenerator-reference.yaml)
-https://github.com/mdditt2000/k8s-bigip-ctlr/tree/main/user_guides/ovn-kubernetes-ha#step-4-configure-egress-from-openshift-cluster-to-big-ip
+* [F5 Container Ingress Services User Guides and More: OpenShift OVN-Kubernetes using F5 BIG-IP HA with NO Tunnels](https://github.com/mdditt2000/k8s-bigip-ctlr/tree/main/user_guides/ovn-kubernetes-ha#step-4-configure-egress-from-openshift-cluster-to-big-ip)

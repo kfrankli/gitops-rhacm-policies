@@ -3,7 +3,6 @@
 > [!NOTE]
 > This methodology is no longer the preferred method of deploying policies via GitOps as a concept. As of [RHACM 2.9](https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.10/html/applications/managing-applications#application-model-and-definitions), it is recommended that the ArgoCD based OpenShift GitOps operator is used. This method outlined here is not marked as deprecated as of RHACM 2.10. This repository does provide instructions on using the [OpenShift GitOps (ArgoCD) method](../argocd/argocd.md).
 
-
 ## Instructions for Deployment
 
 1.  Apply labels to your various managed clusters to reflect their status as `env=hub`, `env=dev`, or `env=prod`. This is used to correctly assigned the banner color and message in the various files in `policies/hub-cluster-templates-configs/`. You can also create other environment names if these are not set.
