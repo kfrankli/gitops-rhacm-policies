@@ -123,11 +123,11 @@ This repository does in fact have kubernetes secrets committed to it since this 
 
 ## Using the ArgoCD based OpenShift GitOps Operator (Recommended)
 
-[OpenShift GitOps (ArgoCD) Instructions](argocd/argocd.md)
+[OpenShift GitOps (ArgoCD) Instructions](argocd/README.md)
 
 ## Using the RHACM Native Application Model
 
-[RHACM Native Application Model Instructions](acm-native-gitops/acm-native-gitops.md)
+[RHACM Native Application Model Instructions](acm-native-gitops/README.md)
 
 ## References
 
