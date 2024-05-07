@@ -14,9 +14,7 @@ This section will outline how to use the CLI to install the OpenShift GitOps Ope
 
     ```console
     $ oc create ns openshift-gitops-operator
-    namespace/openshift-gitops-operator created
     $ oc project openshift-gitops-operator
-    Now using project "openshift-gitops-operator" on server "https://api.cluster-ssz48.ssz48.sandbox2884.opentlc.com:6443".
     ```
 
 2.  Apply the `OperatorGroup` object.
@@ -31,7 +29,6 @@ This section will outline how to use the CLI to install the OpenShift GitOps Ope
     spec:
       upgradeStrategy: Default
     $ oc apply -f ./argocd/gitops-operator-group.yaml
-    operatorgroup.operators.coreos.com/openshift-gitops-operator created
     ```
 
 3.  Apply the Subscription object to subscribe the operator in the `openshift-gitops-operator` namespace.
@@ -50,7 +47,6 @@ This section will outline how to use the CLI to install the OpenShift GitOps Ope
       source: redhat-operators 
       sourceNamespace: openshift-marketplace
     $ oc apply -f ./argocd/openshift-gitops-sub.yaml
-    subscription.operators.coreos.com/openshift-gitops-operator created
     ```
 
 4.  After the installation is complete, verify that all the pods in the `openshift-gitops` namespace are running. This can take a few minutes depending on your network to even return anything.
@@ -140,8 +136,9 @@ Now that OpenShift GitOps (Argo CD) has been installed and basic RBAC enabled, w
     $ oc get argocd openshift-gitops -n openshift-gitops -o yaml > openshift-gitops.yaml
     ```
 
-2.  Now we will apply apply a patch file. Further details on this [can be found here](https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.10/html/gitops/gitops-overview#policy-gen-install-on-openshift-gitops). Not that this differs from the RHACM 2.10 docs which specify an object of `apiVersion: argoproj.io/v1alpha1` but for GitOps 1.12, the object created is of type `apiVersion: argoproj.io/v1beta1`, therefore this is why the patch differs from the aforementioned documentation.
-    ```
+2.  Now we will apply apply a patch file. Further details on this [can be found here](https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.10/html/gitops/gitops-overview#policy-gen-install-on-openshift-gitops). Not that this differs from the RHACM 2.10 docs which specify an object of `apiVersion: argoproj.io/v1alpha1` but for GitOps 1.12, the object created is of type `apiVersion: argoproj.io/v1beta1`, therefore this is why the patch differs from the aforementioned documentation. Also there is a error in the mount points in the docs at time of writing, which I have corrected in my repository. 
+
+    ```console
     $ cat ./argocd/argocd-patch.yaml
     apiVersion: argoproj.io/v1beta1
     kind: ArgoCD
@@ -154,19 +151,17 @@ Now that OpenShift GitOps (Argo CD) has been installed and basic RBAC enabled, w
         env:
         - name: KUSTOMIZE_PLUGIN_HOME
           value: /etc/kustomize/plugin
-        - name: POLICY_GEN_ENABLE_HELM
-          value: "true"
         initContainers:
         - args:
           - -c
           - cp /policy-generator/PolicyGenerator-not-fips-compliant /policy-generator-tmp/PolicyGenerator
           command:
           - /bin/bash
-          image: '{{ (index (lookup "apps/v1" "Deployment" "open-cluster-management" "multicluster-operators-hub-subscription").spec.template.spec.containers 0).image }}'
+          image: registry.redhat.io/rhacm2/multicluster-operators-subscription-rhel9:v2.10
           name: policy-generator-install
           volumeMounts:
-          - mountPath: /policy-generator
-            name: policy-generator-tmp
+          - mountPath: /policy-generator-tmp
+            name: policy-generator
         volumeMounts:
         - mountPath: /etc/kustomize/plugin/policy.open-cluster-management.io/v1/policygenerator
           name: policy-generator
@@ -176,7 +171,23 @@ Now that OpenShift GitOps (Argo CD) has been installed and basic RBAC enabled, w
     $ oc -n openshift-gitops patch argocd openshift-gitops --type merge --patch "$(cat ./argocd/argocd-patch.yaml)" 
     ```
 
-3.  Now that OpenShift GitOps has the binary available, we will need to grant access for the ArgoCD instance to create policies on the RHACM hub instance. First create a custom `ClusterRole` with full rights to the various `open-cluster-management.io` objects we want Argo CD to interact and manage on our behalf.
+3.  You should see a new `openshift-gitops-repo-server-XXXXXXXX-XXXXX` pod start to spin up. Waitt for it to become ready `1/1`.
+
+    ```console
+    $ oc get pods -n openshift-gitops
+    NAME                                                          READY   STATUS    RESTARTS   AGE
+    cluster-84c744d68d-k6ngt                                      1/1     Running   0          6m40s
+    kam-67b754468-gzrpl                                           1/1     Running   0          6m40s
+    openshift-gitops-application-controller-0                     1/1     Running   0          6m37s
+    openshift-gitops-applicationset-controller-84ddbb9469-hxvwz   1/1     Running   0          6m37s
+    openshift-gitops-dex-server-864c46c7b9-rx6fk                  1/1     Running   0          6m37s
+    openshift-gitops-redis-5684c6fc5b-gc87d                       1/1     Running   0          6m38s
+    openshift-gitops-repo-server-75d686dbbf-vc46m                 0/1     Running   0          6s
+    openshift-gitops-repo-server-774f57885c-vlg84                 1/1     Running   0          6m38s
+    openshift-gitops-server-76cf7bd6c8-rg6xb                      1/1     Running   0          6m37s
+    ```
+
+4.  Now that OpenShift GitOps has the binary available, we will need to grant access for the ArgoCD instance to create policies on the RHACM hub instance. First create a custom `ClusterRole` with full rights to the various `open-cluster-management.io` objects we want Argo CD to interact and manage on our behalf.
 
     ```console
     $ cat ./argocd/openshift-gitops-policy-admin.yaml
@@ -229,7 +240,7 @@ Now that OpenShift GitOps (Argo CD) has been installed and basic RBAC enabled, w
     $ oc apply -f ./argocd/openshift-gitops-policy-admin.yaml
     ```
 
-4.  Lastly create a `ClusterRoleBinding` to grant Argo CD access to the newly created `ClusterRole`. 
+5.  Lastly create a `ClusterRoleBinding` to grant Argo CD access to the newly created `ClusterRole`. 
 
     ```console
     $ cat ./argocd/openshift-gitops-policy-admin-clusterolebinding.yaml
@@ -276,7 +287,6 @@ Now that OpenShift GitOps (Argo CD) has been installed and basic RBAC enabled, w
 4.  Now we will create an ArgoCD application to listen to this repository and push out the Policies.
 
     ```console
-    $ oc create namespace policies
     $ cat ./argocd/gitops-policies-application.yaml
     apiVersion: argoproj.io/v1alpha1
     kind: Application
@@ -291,6 +301,7 @@ Now that OpenShift GitOps (Argo CD) has been installed and basic RBAC enabled, w
       source:
         repoURL: https://github.com/kfrankli/gitops-rhacm-policies.git
         targetRevision: main
+        path: policies
       syncPolicy:
         automated:
           prune: true
