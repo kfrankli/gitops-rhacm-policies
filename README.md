@@ -1,5 +1,7 @@
 # Red Hat Advanced Cluster Management for Kubernetes GitOps Example
 
+> [!NOTE]
+> If you found this repo helpful or you found a bug, please feel free to submit a PR, drop me an email kfrankli@redhat.com, or even just star the repo. I welcome any and all feedback. 
 
 ##  Overview
 
