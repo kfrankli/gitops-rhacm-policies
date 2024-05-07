@@ -309,11 +309,20 @@ Now that OpenShift GitOps (Argo CD) has been installed and basic RBAC enabled, w
     $ oc create -f ./argocd/gitops-policies-application.yaml
     ```
 
-5.  Lastly we should be able to see our application deployed in Argo CD and RHACM. To get to the Argo CD console, retrieve the route:
+5.  We should be able to see our application deployed in Argo CD. To get to the Argo CD console, retrieve the route:
 
     ```console
     $ oc get route openshift-gitops-server -n openshift-gitops
     ```
+    ![Argo CD Console With Deployed Application](argocd-overview.png)
+
+    ![Argo CD Console With Deployed PoliApplicationcies Details](argocd-detail.png)
+
+6.  If you go to the RHACM console you should see the deployed policies.
+
+    ![RHACM Console With Deployed Policies Overview](rhacm-console-overview.png)
+
+    ![RHACM Console With Deployed Policies Details](rhacm-console-policies.png)
 
 ## References
 

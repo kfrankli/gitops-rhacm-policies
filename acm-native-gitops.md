@@ -43,9 +43,11 @@
     $ oc create -f ./acm-native-gitops/gitops-policies-channel-and-subscription.yaml
     ```
 
-5.  Now you should be able to see the policies in your RHACM console, and with a little bit of time, the web-terminal operator should deploy since the `remediationAction: enforce` is set.
+5.  Now you should be able to see the policies in your RHACM console, and with a little bit of time, the `console-banner`, `migrate-workloads-to-infra-nodes`, and `operator-configuration` policies should deploy since the `remediationAction: enforce` is set.
 
-![RHACM Console](rhacm-console.png)
+    ![RHACM Console With Deployed Policies Overview](rhacm-console-overview.png)
+
+    ![RHACM Console With Deployed Policies Details](rhacm-console-policies.png)
 
 ## Instructions for Removal
 
