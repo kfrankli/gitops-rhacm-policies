@@ -5,4 +5,4 @@ metadata:
   name: hub-banner-config
   namespace: policies
 data:
-  banner-color: '#FFF'
+  banner-color: '#ff8a00'
