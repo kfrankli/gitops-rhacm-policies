@@ -5,4 +5,4 @@ metadata:
   name: prod-banner-config
   namespace: policies
 data:
-  banner-color: '#ff0000'
+  banner-color: '#ff1234'
