@@ -17,6 +17,13 @@ This section will outline how to use the CLI to install the OpenShift GitOps Ope
     $ oc project openshift-gitops-operator
     ```
 
+    The reason you're using the `oc create namespace` is running `oc new-project` will fail. For example:?
+
+    ```console
+    $ oc new-project openshift-gitops-operator
+    Error from server (Forbidden): project.project.openshift.io "openshift-gitops-operator" is forbidden: cannot request a project starting with "openshift-"
+    ```
+
 2.  Apply the `OperatorGroup` object.
 
     ```console
