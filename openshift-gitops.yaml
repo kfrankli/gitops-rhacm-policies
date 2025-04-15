@@ -1,0 +1,153 @@
+apiVersion: argoproj.io/v1beta1
+kind: ArgoCD
+metadata:
+  creationTimestamp: "2025-04-15T17:05:59Z"
+  finalizers:
+  - argoproj.io/finalizer
+  generation: 2
+  name: openshift-gitops
+  namespace: openshift-gitops
+  ownerReferences:
+  - apiVersion: pipelines.openshift.io/v1alpha1
+    blockOwnerDeletion: true
+    controller: true
+    kind: GitopsService
+    name: cluster
+    uid: 2da3eccb-ebaf-4056-8d20-99afee77eb20
+  resourceVersion: "74470"
+  uid: b3e8ab4b-4dd1-43e5-bfa2-9a9f6b5e1c38
+spec:
+  applicationSet:
+    resources:
+      limits:
+        cpu: "2"
+        memory: 1Gi
+      requests:
+        cpu: 250m
+        memory: 512Mi
+    webhookServer:
+      ingress:
+        enabled: false
+      route:
+        enabled: false
+  controller:
+    processors: {}
+    resources:
+      limits:
+        cpu: "2"
+        memory: 2Gi
+      requests:
+        cpu: 250m
+        memory: 1Gi
+    sharding: {}
+  grafana:
+    enabled: false
+    ingress:
+      enabled: false
+    resources:
+      limits:
+        cpu: 500m
+        memory: 256Mi
+      requests:
+        cpu: 250m
+        memory: 128Mi
+    route:
+      enabled: false
+  ha:
+    enabled: false
+    resources:
+      limits:
+        cpu: 500m
+        memory: 256Mi
+      requests:
+        cpu: 250m
+        memory: 128Mi
+  initialSSHKnownHosts: {}
+  monitoring:
+    enabled: false
+  notifications:
+    enabled: false
+  prometheus:
+    enabled: false
+    ingress:
+      enabled: false
+    route:
+      enabled: false
+  rbac:
+    defaultPolicy: ""
+    policy: |
+      g, system:cluster-admins, role:admin
+      g, cluster-admins, role:admin
+      g, argocdadmins, role:admin
+    scopes: '[groups]'
+  redis:
+    resources:
+      limits:
+        cpu: 500m
+        memory: 256Mi
+      requests:
+        cpu: 250m
+        memory: 128Mi
+  repo:
+    resources:
+      limits:
+        cpu: "1"
+        memory: 1Gi
+      requests:
+        cpu: 250m
+        memory: 256Mi
+  resourceExclusions: |
+    - apiGroups:
+      - tekton.dev
+      clusters:
+      - '*'
+      kinds:
+      - TaskRun
+      - PipelineRun
+  server:
+    autoscale:
+      enabled: false
+    grpc:
+      ingress:
+        enabled: false
+    ingress:
+      enabled: false
+    resources:
+      limits:
+        cpu: 500m
+        memory: 256Mi
+      requests:
+        cpu: 125m
+        memory: 128Mi
+    route:
+      enabled: true
+    service:
+      type: ""
+  sso:
+    dex:
+      openShiftOAuth: true
+      resources:
+        limits:
+          cpu: 500m
+          memory: 256Mi
+        requests:
+          cpu: 250m
+          memory: 128Mi
+    provider: dex
+  tls:
+    ca: {}
+status:
+  applicationController: Running
+  applicationSetController: Running
+  conditions:
+  - lastTransitionTime: "2025-04-15T17:06:52Z"
+    message: ""
+    reason: Success
+    status: "True"
+    type: Reconciled
+  host: openshift-gitops-server-openshift-gitops.apps.cluster-5fxzk.5fxzk.sandbox2712.opentlc.com
+  phase: Available
+  redis: Running
+  repo: Running
+  server: Running
+  sso: Running

@@ -1,6 +1,6 @@
 # Using the Argo CD based OpenShift GitOps Operator (Recommended)
 
-This methodology using the Argo CD based OpenShfit GitOps Operator is the preferred method of deploying policies via GitOps as a concept as of [RHACM 2.9](https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.10/html/applications/managing-applications#application-model-and-definitions), 
+This methodology using the Argo CD based OpenShfit GitOps Operator is the preferred method of deploying policies via GitOps as a concept as of [RHACM 2.9](https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes/2.13/html/applications/managing-applications#application-model-and-definitions), 
 
 ## Prerequisite: OpenShift GitOps Operator on the RHACM Hub Cluster
 
@@ -8,7 +8,7 @@ This section outlines how to install and configure the OpenShift GitOps Operator
 
 ### Installing OpenShift GitOps Operator on the RHACM Hub Cluster
 
-This section will outline how to use the CLI to install the OpenShift GitOps Operator based on the following documentation: [Product Documentation: Red Hat OpenShift GitOps: Installing GitOps](https://docs.openshift.com/gitops/1.12/installing_gitops/installing-openshift-gitops.html#installing-gitops-operator-using-cli_installing-openshift-gitops).
+This section will outline how to use the CLI to install the OpenShift GitOps Operator based on the following documentation: [Product Documentation: Red Hat OpenShift GitOps: Installing GitOps](https://docs.openshift.com/gitops/1.16/installing_gitops/installing-openshift-gitops.html#installing-gitops-operator-using-cli_installing-openshift-gitops).
 
 1.  Create a `openshift-gitops-operator` namespace if one doesn't already exist, and switch to it.
 
@@ -135,7 +135,7 @@ OpenShift GitOps manages access to Argo CD resources through the RBAC policy set
 
 ## Configure OpenShift GitOps to Integrate with the Kustomize Policy Generator Plugin
 
-Now that OpenShift GitOps (Argo CD) has been installed and basic RBAC enabled, we can configure it to support the [Kustomize Policy Generator plugin, and integrate it with RHACM](https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.10/html/gitops/gitops-overview#policy-gen-install-on-openshift-gitops).
+Now that OpenShift GitOps (Argo CD) has been installed and basic RBAC enabled, we can configure it to support the [Kustomize Policy Generator plugin, and integrate it with RHACM](https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.13/html/gitops/gitops-overview#policy-gen-install-on-openshift-gitops).
 
 1.  We will need to modify `ArgoCD` instance to provision a init container to copy the Kustomize Policy Generator plugin to the GitOp Container, and add the `--enable-alpha-plugins` argument. First backup the existing `ArgoCD` object for reference.
 
@@ -143,7 +143,7 @@ Now that OpenShift GitOps (Argo CD) has been installed and basic RBAC enabled, w
     $ oc get argocd openshift-gitops -n openshift-gitops -o yaml > openshift-gitops.yaml
     ```
 
-2.  Now we will apply apply a patch file. Further details on this [can be found here](https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.10/html/gitops/gitops-overview#policy-gen-install-on-openshift-gitops). Not that this differs from the RHACM 2.10 docs which specify an object of `apiVersion: argoproj.io/v1alpha1` but for GitOps 1.12, the object created is of type `apiVersion: argoproj.io/v1beta1`, therefore this is why the patch differs from the aforementioned documentation. Also there is a error in the mount points in the docs at time of writing, which I have corrected in my repository. 
+2.  Now we will apply apply a patch file. Further details on this [can be found here](https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.13/html/gitops/gitops-overview#policy-gen-install-on-openshift-gitops). Not that this differs from the RHACM 2.10 docs which specify an object of `apiVersion: argoproj.io/v1alpha1` but for GitOps 1.12, the object created is of type `apiVersion: argoproj.io/v1beta1`, therefore this is why the patch differs from the aforementioned documentation. Also there is a error in the mount points in the docs at time of writing, which I have corrected in my repository. 
 
     ```console
     $ cat ./argocd/argocd-patch.yaml
@@ -164,7 +164,7 @@ Now that OpenShift GitOps (Argo CD) has been installed and basic RBAC enabled, w
           - cp /policy-generator/PolicyGenerator-not-fips-compliant /policy-generator-tmp/PolicyGenerator
           command:
           - /bin/bash
-          image: registry.redhat.io/rhacm2/multicluster-operators-subscription-rhel9:v2.10
+          image: registry.redhat.io/rhacm2/multicluster-operators-subscription-rhel9:v2.13
           name: policy-generator-install
           volumeMounts:
           - mountPath: /policy-generator-tmp
@@ -333,10 +333,10 @@ Now that OpenShift GitOps (Argo CD) has been installed and basic RBAC enabled, w
 
 ## References
 
-* [Product Documentation: RHACM: GitOps Overview](https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.10/html/gitops/gitops-overview)
-* [Product Documentation: OpenShift: CI/CD: GitOps](https://access.redhat.com/documentation/en-us/openshift_container_platform/4.15/html/cicd/gitops)
-* [Product Documentation: OpenShift GitOps](https://docs.openshift.com/gitops/1.12/understanding_openshift_gitops/about-redhat-openshift-gitops.html)
-* [Product Documentation: OpenShift GitOps: Configuring Argo CD RBAC](https://docs.openshift.com/gitops/1.12/accesscontrol_usermanagement/configuring-argo-cd-rbac.html)
-* [Product Documentation: RHACM: Managing policy definitions with OpenShift Container Platform GitOps (Argo CD)](https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.10/html/gitops/gitops-overview#policy-gen-install-on-openshift-gitops)
+* [Product Documentation: RHACM: GitOps Overview](https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.13/html/gitops/gitops-overview)
+* [Product Documentation: OpenShift: CI/CD: GitOps](https://access.redhat.com/documentation/en-us/openshift_container_platform/4.18/html/cicd/gitops)
+* [Product Documentation: OpenShift GitOps](https://docs.openshift.com/gitops/1.16/understanding_openshift_gitops/about-redhat-openshift-gitops.html)
+* [Product Documentation: OpenShift GitOps: Configuring Argo CD RBAC](https://docs.openshift.com/gitops/1.16/accesscontrol_usermanagement/configuring-argo-cd-rbac.html)
+* [Product Documentation: RHACM: Managing policy definitions with OpenShift Container Platform GitOps (Argo CD)](https://access.redhat.com/documentation/en-us/red_hat_advanced_cluster_management_for_kubernetes/2.13/html/gitops/gitops-overview#policy-gen-install-on-openshift-gitops)
 * [Red Hat Solutions: Unable to create application with user having cluster-admin privileges in Argo CD.](https://access.redhat.com/solutions/6975821)
 * [Red Hat Solutions: Add a Kustomize plugin to OpenShift GitOps in RHOCP4](https://access.redhat.com/solutions/6997069)

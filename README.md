@@ -17,8 +17,8 @@ Thank you to [Alberto Gonzalez de Dios](https://github.com/albertogd) for his ph
 
 ## Assumptions
 
-* A Red Hat OpenShift cluster at 4.14+
-* Red Hat Advanced Cluster Management for Kubernetes installed at 2.10+
+* A Red Hat OpenShift cluster at 4.18+
+* Red Hat Advanced Cluster Management for Kubernetes installed at 2.13+
 * The OpenShift `oc` client utility installed locally 
 * You have Infrastructure node machinesets in place [Red Hat Documentation: Creating Infrastructure Machinesets](https://docs.openshift.com/container-platform/4.14/machine_management/creating-infrastructure-machinesets.html)
 
