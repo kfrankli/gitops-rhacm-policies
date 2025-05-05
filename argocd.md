@@ -1,12 +1,41 @@
 # Using the Argo CD based OpenShift GitOps Operator (Recommended)
 
-This methodology using the Argo CD based OpenShfit GitOps Operator is the preferred method of deploying policies via GitOps as a concept as of [RHACM 2.9](https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes/2.13/html/applications/managing-applications#application-model-and-definitions), 
+This methodology using the Argo CD based OpenShfit GitOps Operator is the preferred method of deploying policies via GitOps as a concept as of [RHACM 2.9](https://docs.redhat.com/en/documentation/red_hat_advanced_cluster_management_for_kubernetes/2.13/html/applications/managing-applications#application-model-and-definitions).
+
+> [!TIP]
+> Admonition blocks will be used to call out changes that maybe needed to support deploying this in a disconnected FIPS cluster.
 
 ## Prerequisite: OpenShift GitOps Operator on the RHACM Hub Cluster
 
 This section outlines how to install and configure the OpenShift GitOps Operator on the RHACM Hub Cluster. If this has already been done, you can skip this section.
 
-### Installing OpenShift GitOps Operator on the RHACM Hub Cluster
+## Prerequisite: Disconnected Image Mirroring
+
+If the cluster is disconnected, the images will have to be mirrored. Assuming you are using the `oc-mirror` utility, you will need a mirroring configuration similar to the below:
+
+```console
+$ cat << EOF > /mnt/low-side-data/imageset-config.yaml
+---
+kind: ImageSetConfiguration
+apiVersion: mirror.openshift.io/v1alpha2
+storageConfig:
+  local:
+    path: ./
+mirror:
+  operators:
+  - catalog: registry.redhat.io/redhat/redhat-operator-index:v4.18
+    packages:
+    - name: web-terminal
+    - name: advanced-cluster-management
+    - name: multicluster-engine
+    - name: openshift-gitops-operator
+  helm: {}
+EOF
+
+$ oc-mirror --config imageset-config.yaml file:///mnt/low-side-data
+```
+
+## Installing OpenShift GitOps Operator on the RHACM Hub Cluster
 
 This section will outline how to use the CLI to install the OpenShift GitOps Operator based on the following documentation: [Product Documentation: Red Hat OpenShift GitOps: Installing GitOps](https://docs.openshift.com/gitops/1.16/installing_gitops/installing-openshift-gitops.html#installing-gitops-operator-using-cli_installing-openshift-gitops).
 
@@ -56,6 +85,27 @@ This section will outline how to use the CLI to install the OpenShift GitOps Ope
     $ oc apply -f ./argocd/openshift-gitops-sub.yaml
     ```
 
+    > [!TIP]
+    > Disconnected Tip: You will need to modify the `source:` field for a disconnected install
+    > ```
+    > $ cat << EOF > ./argocd/openshift-gitops-sub.yaml
+    > ---
+    > apiVersion: operators.coreos.com/v1alpha1
+    > kind: Subscription
+    > metadata:
+    >   name: openshift-gitops-operator
+    >   namespace: openshift-gitops-operator
+    > spec:
+    >   channel: latest 
+    >   installPlanApproval: Automatic
+    >   name: openshift-gitops-operator 
+    >   source: cs-redhat-operator-index
+    >   sourceNamespace: openshift-marketplace
+    > EOF
+    >
+    > $ oc apply -f ./argocd/openshift-gitops-sub.yaml
+    > ```    
+
 4.  After the installation is complete, verify that all the pods in the `openshift-gitops` namespace are running. This can take a few minutes depending on your network to even return anything.
 
     ```console
@@ -79,7 +129,7 @@ This section will outline how to use the CLI to install the OpenShift GitOps Ope
     openshift-gitops-operator-controller-manager-664966d547-vr4vb   2/2     Running   0          65m
     ```
 
-### Configure Basic RBAC Policy For OpenShift GitOps
+## Configure Basic RBAC Policy For OpenShift GitOps
 
 OpenShift GitOps manages access to Argo CD resources through the RBAC policy set under Argo CD instance. By default any [`cluster-admin` users don't have rights to Argo CD](https://access.redhat.com/solutions/6975821).
 
@@ -177,6 +227,43 @@ Now that OpenShift GitOps (Argo CD) has been installed and basic RBAC enabled, w
           name: policy-generator
     $ oc -n openshift-gitops patch argocd openshift-gitops --type merge --patch "$(cat ./argocd/argocd-patch.yaml)" 
     ```
+
+    > [!TIP]
+    > Disconnected Tip: You will need to modify the image registry and image to match what you pulled in to your environment via `oc-mirror`
+    > ```
+    > cat << EOF > ./argocd/argocd-patch.yaml
+    > ---
+    > apiVersion: argoproj.io/v1beta1
+    > kind: ArgoCD
+    > metadata:
+    >   name: openshift-gitops
+    >   namespace: openshift-gitops
+    > spec:
+    >   kustomizeBuildOptions: --enable-alpha-plugins
+    >   repo:
+    >     env:
+    >     - name: KUSTOMIZE_PLUGIN_HOME
+    >       value: /etc/kustomize/plugin
+    >     initContainers:
+    >     - args:
+    >       - -c
+    >       - cp /policy-generator/PolicyGenerator-not-fips-compliant /policy-generator-tmp/PolicyGenerator
+    >       command:
+    >       - /bin/bash
+    >       image: $MY_REGISTRY/rhacm2/multicluster-operators-subscription-rhel9:$MY_IMAGETAG
+    >       name: policy-generator-install
+    >       volumeMounts:
+    >       - mountPath: /policy-generator-tmp
+    >         name: policy-generator
+    >     volumeMounts:
+    >     - mountPath: /etc/kustomize/plugin/policy.open-cluster-management.io/v1/policygenerator
+    >       name: policy-generator
+    >     volumes:
+    >     - emptyDir: {}
+    >       name: policy-generator
+    > EOF
+    > oc -n openshift-gitops patch argocd openshift-gitops --type merge --patch "$(cat ./argocd/argocd-patch.yaml)" 
+    > ```
 
 3.  You should see a new `openshift-gitops-repo-server-XXXXXXXX-XXXXX` pod start to spin up. Waitt for it to become ready `1/1`.
 
